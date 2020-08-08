@@ -1,0 +1,2 @@
+rootProject.name='ProviderTestActivity'
+include ':app'

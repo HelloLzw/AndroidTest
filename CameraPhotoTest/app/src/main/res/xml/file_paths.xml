@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
+    <!--files-path name="name" path="path" /> 物理路径相当于Context.getFilesDir() + /path/
+    <cache-path name="name" path="path" /> 物理路径相当于Context.getCacheDir() + /path/
+    <external-path name="name" path="path" /> 物理路径相当于Environment.getExternalStorageDirectory() + /path/
+    <external-files-path name="name" path="path" /> 物理路径相当于Context.getExternalFilesDir(String) + /path/
+    <external-cache-path name="name" path="path" />物理路径相当于Context.getExternalCacheDir() + /path/-->
+    <!--这里的my_images只是把物理路径用这个名字去代替而已-->
+    <external-path name="my_images" path="."/>
+</paths>
