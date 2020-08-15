@@ -1,4 +1,4 @@
-package com.example.mainactivity;
+package com.example.internettest;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -16,17 +16,31 @@ import android.widget.Button;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
+import com.example.internettest.MyHandler;
+
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+import org.xml.sax.XMLReader;
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
+import org.xmlpull.v1.XmlPullParserFactory;
+
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.StringReader;
 import java.lang.annotation.Target;
+import java.net.ContentHandler;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
 import javax.net.ssl.HttpsURLConnection;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener{
     private static final String TAG = "MainActivity";
@@ -89,6 +103,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     }
 
                     Log.e(TAG, "response = " + response.toString());
+                    //*********************Pull方式解析*********************
+                    parseXMLWithPull(response.toString());
+                    //*****************************************************
+
+                    //*********************SAX方式解析**********************
+                    Log.e(TAG, "SAX Begin!");
+                    parseXMLWithSAX(response.toString());
+                    Log.e(TAG, "SAX End!");
+                    //*****************************************************
                     //记住,Android不允许在子线程中操作UI,使用下面的方法可以切换到主线程去操作UI
                     runOnUiThread(new Runnable() {
                         @Override
@@ -112,6 +135,64 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
             }
         }).start();
+    }
+    private void parseXMLWithSAX (String xmlData) throws ParserConfigurationException, SAXException, IOException {
+        SAXParserFactory saxParserFactory = SAXParserFactory.newInstance();
+        XMLReader xmlReader = saxParserFactory.newSAXParser().getXMLReader();
+        MyHandler handler = new MyHandler();
+
+        xmlReader.setContentHandler(handler);
+        xmlReader.parse(new InputSource(new StringReader(xmlData)));
+    }
+    private void parseXMLWithPull(String xmlData) {
+        try {
+            XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
+            XmlPullParser xmlPullParser = factory.newPullParser();
+            xmlPullParser.setInput(new StringReader(xmlData));
+
+            //这里获取解析事件,判断是文档的开始结束 标签的开始结束
+            int eventType = xmlPullParser.getEventType();
+
+            String id = "";
+            String name = "";
+            String version = "";
+
+            //当不是文档结束的时候循环解析
+            while (eventType != XmlPullParser.END_DOCUMENT){
+                //获取当前签标的名字
+                String nodeName = xmlPullParser.getName();
+
+                //这里判断是开始签标还是结束签标
+                switch (eventType){
+                    case XmlPullParser.START_TAG:
+                        if ("id".equals(nodeName)){
+                            id = xmlPullParser.nextText();
+                        }else if("name".equals(nodeName)){
+                            name = xmlPullParser.nextText();
+                        }else if("version".equals(nodeName)){
+                            version = xmlPullParser.nextText();
+                        }
+                        break;
+                    case XmlPullParser.END_TAG:
+                        if ("app".equals(nodeName)){
+                            Log.e(TAG, "id = " + id);
+                            Log.e(TAG, "name = " + name);
+                            Log.e(TAG, "version = " + version);
+                        }
+                        break;
+                    default:
+                        break;
+                }
+
+                //下个标签
+                eventType = xmlPullParser.next();
+            }
+
+        } catch (XmlPullParserException | IOException e) {
+            e.printStackTrace();
+        }
+
+
     }
 
     @Override
